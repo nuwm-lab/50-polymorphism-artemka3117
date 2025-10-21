@@ -20,6 +20,16 @@ public class HalfPlane
     }
 
     /// <summary>
+    /// Встановлює коефіцієнти півплощини
+    /// </summary>
+    public void SetCoefficients(double a1, double a2, double b)
+    {
+        _a1 = a1;
+        _a2 = a2;
+        _b = b;
+    }
+
+    /// <summary>
     /// Виводить коефіцієнти півплощини
     /// </summary>
     public virtual void PrintCoefficients()
@@ -52,6 +62,15 @@ public class HalfSpace : HalfPlane
 
     public HalfSpace(double a1, double a2, double a3, double b) : base(a1, a2, b)
     {
+        _a3 = a3;
+    }
+
+    /// <summary>
+    /// Встановлює коефіцієнти півпростору
+    /// </summary>
+    public void SetCoefficients(double a1, double a2, double a3, double b)
+    {
+        base.SetCoefficients(a1, a2, b);
         _a3 = a3;
     }
 
@@ -139,6 +158,25 @@ class Program
             else
             {
                 Console.WriteLine("Некоректний вибір.");
+            }
+        }
+
+        // Демонстрація встановлення коефіцієнтів для першого об'єкта кожного типу
+        for (int i = 0; i < objects.Count; i++)
+        {
+            if (i == 0 && objects[i] is HalfPlane hp && objects[i].GetType() == typeof(HalfPlane))
+            {
+                Console.WriteLine("\nВи можете змінити коефіцієнти для першої півплощини.");
+                var newCoeffs = ReadDoubles("Введіть нові коефіцієнти (a1 a2 b):", 3);
+                if (newCoeffs != null)
+                    hp.SetCoefficients(newCoeffs[0], newCoeffs[1], newCoeffs[2]);
+            }
+            if (i == 0 && objects[i] is HalfSpace hs)
+            {
+                Console.WriteLine("\nВи можете змінити коефіцієнти для першого півпростору.");
+                var newCoeffs = ReadDoubles("Введіть нові коефіцієнти (a1 a2 a3 b):", 4);
+                if (newCoeffs != null)
+                    hs.SetCoefficients(newCoeffs[0], newCoeffs[1], newCoeffs[2], newCoeffs[3]);
             }
         }
 
