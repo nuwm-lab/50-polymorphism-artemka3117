@@ -1,6 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
+/// <summary>
+/// Описує півплощину у 2D.
+/// </summary>
 public class HalfPlane
 {
     private double _a1, _a2, _b;
@@ -24,17 +28,23 @@ public class HalfPlane
     }
 
     /// <summary>
-    /// Перевіряє, чи належить точка півплощині
+    /// Перевіряє, чи належить точка півплощині (2D)
     /// </summary>
-    public virtual bool ContainsPoint(double x1, double x2)
+    /// <param name="coords">Масив координат (2 елементи)</param>
+    /// <returns>true, якщо точка належить півплощині</returns>
+    public virtual bool ContainsPoint(double[] coords)
     {
-        return _a1 * x1 + _a2 * x2 <= _b;
+        if (coords == null || coords.Length != 2)
+            return false;
+        return _a1 * coords[0] + _a2 * coords[1] <= _b;
     }
 
     public override string ToString() => $"HalfPlane: a1={_a1}, a2={_a2}, b={_b}";
 }
 
-// Похідний клас "півпростір"
+/// <summary>
+/// Описує півпростір у 3D.
+/// </summary>
 public class HalfSpace : HalfPlane
 {
     private double _a3;
@@ -54,11 +64,15 @@ public class HalfSpace : HalfPlane
     }
 
     /// <summary>
-    /// Перевіряє, чи належить точка півпростору
+    /// Перевіряє, чи належить точка півпростору (3D)
     /// </summary>
-    public bool ContainsPoint(double x1, double x2, double x3)
+    /// <param name="coords">Масив координат (3 елементи)</param>
+    /// <returns>true, якщо точка належить півпростору</returns>
+    public override bool ContainsPoint(double[] coords)
     {
-        return A1 * x1 + A2 * x2 + _a3 * x3 <= B;
+        if (coords == null || coords.Length != 3)
+            return false;
+        return A1 * coords[0] + A2 * coords[1] + _a3 * coords[2] <= B;
     }
 
     public override string ToString() => $"HalfSpace: a1={A1}, a2={A2}, a3={_a3}, b={B}";
@@ -66,7 +80,10 @@ public class HalfSpace : HalfPlane
 
 class Program
 {
-    static double[] ReadDoubles(string prompt, int count)
+    /// <summary>
+    /// Зчитує масив чисел з консолі
+    /// </summary>
+    private static double[] ReadDoubles(string prompt, int count)
     {
         while (true)
         {
@@ -86,7 +103,7 @@ class Program
             var result = new double[count];
             bool ok = true;
             for (int i = 0; i < count; i++)
-                ok &= double.TryParse(arr[i], out result[i]);
+                ok &= double.TryParse(arr[i], NumberStyles.Float, CultureInfo.InvariantCulture, out result[i]);
             if (ok) return result;
             Console.WriteLine("Помилка: некоректний ввід.");
         }
@@ -95,6 +112,7 @@ class Program
     static void Main()
     {
         var objects = new List<HalfPlane>();
+        var points = new List<double[]>();
         while (true)
         {
             Console.WriteLine("Виберіть тип об'єкта: 1 - Півплощина, 2 - Півпростір, 0 - Вихід");
@@ -106,6 +124,8 @@ class Program
                 if (hpCoeffs == null) continue;
                 HalfPlane obj = new HalfPlane(hpCoeffs[0], hpCoeffs[1], hpCoeffs[2]);
                 objects.Add(obj);
+                var hpPoint = ReadDoubles("Введіть точку для перевірки (x1 x2):", 2);
+                points.Add(hpPoint);
             }
             else if (choice == "2")
             {
@@ -113,6 +133,8 @@ class Program
                 if (hsCoeffs == null) continue;
                 HalfPlane obj = new HalfSpace(hsCoeffs[0], hsCoeffs[1], hsCoeffs[2], hsCoeffs[3]);
                 objects.Add(obj);
+                var hsPoint = ReadDoubles("Введіть точку для перевірки (x1 x2 x3):", 3);
+                points.Add(hsPoint);
             }
             else
             {
@@ -120,11 +142,20 @@ class Program
             }
         }
 
-        Console.WriteLine("\nВсі створені об'єкти:");
-        foreach (var obj in objects)
+        Console.WriteLine("\nВсі створені об'єкти та перевірка точок:");
+        for (int i = 0; i < objects.Count; i++)
         {
+            var obj = objects[i];
             obj.PrintCoefficients();
             Console.WriteLine(obj);
+            var pt = points[i];
+            if (pt == null)
+            {
+                Console.WriteLine("Точка не задана.");
+                continue;
+            }
+            bool result = obj.ContainsPoint(pt);
+            Console.WriteLine(result ? "Точка належить об'єкту" : "Точка не належить об'єкту");
         }
     }
 }
